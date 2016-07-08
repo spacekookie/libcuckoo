@@ -4,3 +4,5 @@
  *
  * @author Katharina "spacekookie" Sabel
  */
+
+unsigned long cuckoo_crc32(const unsigned char *s, unsigned int len);
