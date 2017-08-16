@@ -5,7 +5,8 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -std=c11")
 
 set(LIBCUCKOO_SRC
-  src/cuckoo.c
+    src/cuckoo.c
+    src/hashing.c
 )
 
 # Create a library with properties and import paths

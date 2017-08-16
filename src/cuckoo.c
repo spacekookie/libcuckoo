@@ -5,10 +5,15 @@
  * @author Katharina "spacekookie" Sabel
  */
 
-// Include our internal headers
+/* Public API header */
 #include <cuckoo.h>
+
+/* Stdlib requirements */
 #include <memory.h>
 #include <malloc.h>
+
+/* Internal hashing submodule */
+#include "hashing.h"
 
 
 typedef struct cc_map_item {
