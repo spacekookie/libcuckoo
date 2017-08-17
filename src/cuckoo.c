@@ -41,18 +41,24 @@ typedef struct cuckoo_map {
 
 unsigned int check_flagmask(int32_t flags, int32_t mask);
 
-uint32_t cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
+
+int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
 {
     struct cuckoo_map *m;
+    int ret = CUCKOO_SUCCESS;
     int i;
 
     if(init_size <= 0) {
-        printf("Invalid initial size!\n");
-        return 1;
+        fprintf(stderr, "Invalid initial size!\n");
+        return CUCKOO_ERROR;
     }
 
     /** Malloc some space for our table */
     m = malloc(sizeof(cuckoo_map) * 1);
+    if(m == NULL) {
+        ret = CUCKOO_MALLOC_FAIL;
+        goto container;
+    }
     memset(m, 0, sizeof(cuckoo_map));
 
     /* Set initial table size */
@@ -67,9 +73,21 @@ uint32_t cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
         m->num_tables = 2;
     }
 
+    /** Check other runtime flags */
+    // FIXME: This behaviour should be supported!
+    if(check_flagmask(flags, CC_FLAGS_ASYNC | CC_FLAGS_QUEUED)) {
+        fprintf(stderr, "Runtime modes besides 'default' not supported!\n");
+        ret = CUCKOO_INVALID_OPTIONS;
+        goto container;
+    }
+
     /** Create the right number of tables */
     size_t tables = sizeof(cc_map_item**) * m->num_tables;
     m->tables = malloc(tables);
+    if(m->tables == NULL) {
+        ret = CUCKOO_MALLOC_FAIL;
+        goto meta;
+    }
     memset(m->tables, 0, tables);
 
     /** Open up the tables by the desired amount */
@@ -77,12 +95,31 @@ uint32_t cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     size_t init = sizeof(cc_map_item) * init_size;
     for(i = 0; i < m->num_tables; i++) {
         m->tables[i] = malloc(init);
+        if(m->tables[i] == NULL) {
+            ret = CUCKOO_MALLOC_FAIL;
+            goto tables;
+        }
         memset(m->tables[i], 0, init);
     }
 
     /** Assign the pointer and return */
     (*map) = m;
-    return 0;
+    return ret;
+
+    /** Free memory according to how far the allocation step got **/
+
+    tables:
+    for(i = 0; i < m->num_tables; i++) {
+        if(m->tables[i] == NULL) free(m->tables[i]);
+    }
+
+    meta:
+    if(m->tables != NULL) free(m->tables);
+
+    container:
+    if(m != NULL) free(m);
+
+    return ret;
 }
 
 

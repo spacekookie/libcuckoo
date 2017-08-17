@@ -19,6 +19,12 @@ typedef struct cuckoo_map cuckoo_map;
 #define CC_FLAGS_TABLES_FOUR    (1 << 6)
 
 
+#define CUCKOO_SUCCESS              (0     )
+#define CUCKOO_ERROR                (1 << 0)
+#define CUCKOO_MALLOC_FAIL          (1 << 1)
+#define CUCKOO_INVALID_OPTIONS      (1 << 2)
+
+
 /**
  * Creates a new cuckoo map with an initial size and a few runtime
  * flags that can be combined to achieve different behaviours. This
@@ -32,7 +38,7 @@ typedef struct cuckoo_map cuckoo_map;
  * @param rt_flgs       Runtime flags provided via OR operator (|)
  * @return
  */
-uint32_t cuckoo_init(struct cuckoo_map **map, size_t init_size, uint32_t flags);
+int cuckoo_init(struct cuckoo_map **map, size_t init_size, uint32_t flags);
 
 /**
  * Starts walking through the queue to syndicate tables with queue 
