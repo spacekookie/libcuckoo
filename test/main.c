@@ -1,5 +1,7 @@
 #include <cuckoo.h>
 #include <stdio.h>
+#include <memory.h>
+#include <malloc.h>
 
 int main(void)
 {
@@ -10,6 +12,10 @@ int main(void)
         printf("An error occured while initialising a map!\n");
         return ret;
     }
+
+    char *string = malloc(sizeof(char) * strlen("Something"));
+    strcpy(string, "Something");
+    cuckoo_insert(map, "Else", string);
 
     ret = cuckoo_free(map, CUCKOO_NO_CB);
 

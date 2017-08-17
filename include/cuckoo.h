@@ -7,8 +7,23 @@
 
 #include <unitypes.h>
 
-/** Forward declare our map so users can import them */
-typedef struct cuckoo_map cuckoo_map;
+
+typedef struct cc_map_item {
+    const char      *key;           // Index key
+    void            *value;         // User data
+    short           table;          // Table location
+    short           prev;           // Previous table location
+    int             qu_idx;         // Insert queue location
+} cc_map_item;
+
+
+typedef struct cuckoo_map {
+    size_t          size;           // Table max size (upper bound)
+    size_t          *used;          // Occupancy of each table
+    unsigned short  num_tables;     // Number of tables
+    cc_map_item ***tables;          // Actual data storage
+} cuckoo_map;
+
 
 /** Runtime flags given to initialiser **/
 #define CUCKOO_DEFAULT        (1 << 1)
@@ -25,6 +40,8 @@ typedef struct cuckoo_map cuckoo_map;
 #define CUCKOO_ERROR                (1 << 0)
 #define CUCKOO_MALLOC_FAIL          (1 << 1)
 #define CUCKOO_INVALID_OPTIONS      (1 << 2)
+#define CUCKOO_FAILED_INSERT        (1 << 3)
+#define CUCKOO_HASHING_FAILED       (1 << 4)
 
 
 /**

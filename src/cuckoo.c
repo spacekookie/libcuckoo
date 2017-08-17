@@ -16,23 +16,6 @@
 #include "hashing.h"
 
 
-typedef struct cc_map_item {
-    const char      *key;           // Index key
-    void            *value;         // User data
-    unsigned short  table;          // Table location
-    unsigned short  prev;           // Previous table location
-    unsigned int    qu_idx;         // Insert queue location
-} cc_map_item;
-
-
-typedef struct cuckoo_map {
-    size_t          size;           // Table max size (upper bound)
-    size_t          *used;          // Occupancy of each table
-    unsigned short  num_tables;     // Number of tables
-    cc_map_item ***tables;          // Actual data storage
-} cuckoo_map;
-
-
 /** Utility funtion - move to utils.h ? */
 unsigned int check_flagmask(int32_t flags, int32_t mask);
 

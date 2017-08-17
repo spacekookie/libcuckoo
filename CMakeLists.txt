@@ -6,6 +6,7 @@ set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -std=c11")
 
 set(LIBCUCKOO_SRC
     src/cuckoo.c
+    src/insert.c
     src/hashing.c
 )
 
