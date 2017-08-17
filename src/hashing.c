@@ -23,7 +23,8 @@ int cc_hashing_murmur(unsigned long *hash_val, char *string, size_t table_size)
     uint32_t seed = 0xAF172FE;
     int i = 0;
 
-    uint32_t h = seed, k = 0;
+    uint32_t k = 0;
+    uint32_t h = seed;
     uint8_t *d = (uint8_t *) string;
     const uint32_t *chunks = (const uint32_t *)(d + l * 4);
     const uint8_t *tail = (const uint8_t *)(d + l * 4);
@@ -76,7 +77,7 @@ int cc_hashing_numeric(unsigned long *hash_val, char *string, size_t table_size)
 
     do {
         c = *string++;
-        hash = ((hash << 5) + hash >> 3) + c;
+        hash ^= ((hash << 5) + hash >> 3) + c;
 
     }while(c);
 
