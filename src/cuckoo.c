@@ -17,28 +17,23 @@
 
 
 typedef struct cc_map_item {
-    char            *key;
-    void            *value;
-
-    /* An element knows what table it's in */
-    unsigned short  table;
-
-    /* An element also knows it's previous table */
-    unsigned short  prev;
-
-    /* Only used for queue inserts */
-    unsigned int    qu_idx;
+    const char      *key;           // Index key
+    void            *value;         // User data
+    unsigned short  table;          // Table location
+    unsigned short  prev;           // Previous table location
+    unsigned int    qu_idx;         // Insert queue location
 } cc_map_item;
 
+
 typedef struct cuckoo_map {
-    size_t          size;
-    unsigned short  num_tables;
-
-    /** A list of "cc_map_item" tables */
-    cc_map_item ***tables;
-
+    size_t          size;           // Table max size (upper bound)
+    size_t          *used;          // Occupancy of each table
+    unsigned short  num_tables;     // Number of tables
+    cc_map_item ***tables;          // Actual data storage
 } cuckoo_map;
 
+
+/** Utility funtion - move to utils.h ? */
 unsigned int check_flagmask(int32_t flags, int32_t mask);
 
 
@@ -48,6 +43,7 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     int ret = CUCKOO_SUCCESS;
     int i;
 
+    /* Refuse to alloc invalid table start size */
     if(init_size <= 0) {
         fprintf(stderr, "Invalid initial size!\n");
         return CUCKOO_ERROR;
@@ -57,7 +53,7 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     m = malloc(sizeof(cuckoo_map) * 1);
     if(m == NULL) {
         ret = CUCKOO_MALLOC_FAIL;
-        goto container;
+        goto cleanup;
     }
     memset(m, 0, sizeof(cuckoo_map));
 
@@ -65,9 +61,9 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     m->size = init_size;
 
     /* Handle runtime flags */
-    if(check_flagmask(flags, CC_FLAGS_TABLES_THREE) == 0) {
+    if(check_flagmask(flags, CUCKOO_TABLES_THREE) == 0) {
         m->num_tables = 3;
-    } else if(check_flagmask(flags, CC_FLAGS_TABLES_FOUR) == 0) {
+    } else if(check_flagmask(flags, CUCKOO_TABLES_FOUR) == 0) {
         m->num_tables = 4;
     }  else {
         m->num_tables = 2;
@@ -75,10 +71,18 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
 
     /** Check other runtime flags */
     // FIXME: This behaviour should be supported!
-    if(check_flagmask(flags, CC_FLAGS_ASYNC | CC_FLAGS_QUEUED)) {
+    if(check_flagmask(flags, CUCKOO_ASYNC | CUCKOO_QUEUED) == 0) {
         fprintf(stderr, "Runtime modes besides 'default' not supported!\n");
         ret = CUCKOO_INVALID_OPTIONS;
-        goto container;
+        goto cleanup;
+    }
+
+
+    /** Prepare occupancy stat list  */
+    m->used = malloc(sizeof(size_t) * m->num_tables);
+    if(m->used == NULL) {
+        ret = CUCKOO_MALLOC_FAIL;
+        goto cleanup;
     }
 
     /** Create the right number of tables */
@@ -86,7 +90,7 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     m->tables = malloc(tables);
     if(m->tables == NULL) {
         ret = CUCKOO_MALLOC_FAIL;
-        goto meta;
+        goto cleanup;
     }
     memset(m->tables, 0, tables);
 
@@ -97,7 +101,7 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
         m->tables[i] = malloc(init);
         if(m->tables[i] == NULL) {
             ret = CUCKOO_MALLOC_FAIL;
-            goto tables;
+            goto cleanup;
         }
         memset(m->tables[i], 0, init);
     }
@@ -107,19 +111,40 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     return ret;
 
     /** Free memory according to how far the allocation step got **/
-
-    tables:
-    for(i = 0; i < m->num_tables; i++) {
-        if(m->tables[i] == NULL) free(m->tables[i]);
-    }
-
-    meta:
+    cleanup:
+    if(m->used != NULL) free(m->used);
+    for(i = 0; i < m->num_tables; i++) if(m->tables[i] != NULL) free(m->tables[i]);
     if(m->tables != NULL) free(m->tables);
-
-    container:
     if(m != NULL) free(m);
 
     return ret;
+}
+
+
+int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*))
+{
+    int i, j;
+
+    if(map == NULL) return CUCKOO_INVALID_OPTIONS;
+
+    /* Iterate over all tables */
+    for(i = 0; i < map->num_tables; i++) {
+
+        /* Run "free cb for all children - if it exists */
+        if(free_cb != NULL) {
+            for(j = 0; j < map->used[i]; j++) {
+                free_cb(map->tables[i][j]);
+            }
+        }
+
+        if(map->tables[i] != NULL) free(map->tables[i]);
+    }
+
+    if(map->used != NULL) free(map->used);
+    if(map->tables != NULL) free(map->tables);
+    free(map);
+
+    return CUCKOO_SUCCESS;
 }
 
 

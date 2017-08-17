@@ -11,13 +11,15 @@
 typedef struct cuckoo_map cuckoo_map;
 
 /** Runtime flags given to initialiser **/
-#define CC_FLAGS_DEFAULT        (1 << 1)
-#define CC_FLAGS_QUEUED         (1 << 2)
-#define CC_FLAGS_ASYNC          (1 << 3)
-#define CC_FLAGS_TABLES_TWO     (1 << 4)
-#define CC_FLAGS_TABLES_THREE   (1 << 5)
-#define CC_FLAGS_TABLES_FOUR    (1 << 6)
+#define CUCKOO_DEFAULT        (1 << 1)
+#define CUCKOO_QUEUED         (1 << 2)
+#define CUCKOO_ASYNC          (1 << 3)
+#define CUCKOO_TABLES_TWO     (1 << 4)
+#define CUCKOO_TABLES_THREE   (1 << 5)
+#define CUCKOO_TABLES_FOUR    (1 << 6)
 
+/** Don't provide a callback function */
+#define CUCKOO_NO_CB            NULL
 
 #define CUCKOO_SUCCESS              (0     )
 #define CUCKOO_ERROR                (1 << 0)
@@ -40,30 +42,56 @@ typedef struct cuckoo_map cuckoo_map;
  */
 int cuckoo_init(struct cuckoo_map **map, size_t init_size, uint32_t flags);
 
-/**
- * Starts walking through the queue to syndicate tables with queue 
- * entries to allow for quick lookup times. 
- */
-//int32_t cuckoo_async(cuckoo_map *map);
-//
-//int32_t cuckoo_insert(cuckoo_map *map, const char *key, void *val);
-//
-//int32_t cuckoo_remove(cuckoo_map *map, const char *key);
-//
-//int32_t cuckoo_get(cuckoo_map *map, void *(*item), const char *key);
-//
-//int32_t cuckoo_get_any(cuckoo_map *map, void *(*item));
 
 /**
- * Blocking call that will sync the slow insert queue with the fast
- * bucket map to optimise lookup times. This function will block until
- * no more items can be synced.
  *
- * Returns
- *      == 0 if all items were synced
- *      >= 1 indicating the amount of items still in the queue
- *      <= 1 error codes that need lookup from <cuckoo/errors.h>
+ * @param map
+ * @param key
+ * @param data
+ * @return
  */
-int32_t cuckoo_sync(cuckoo_map *map);
+int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data);
 
-int32_t cuckoo_clear(cuckoo_map *map);
+
+/**
+ *
+ * @param map
+ * @param key
+ * @return
+ */
+int cuckoo_contains(struct cuckoo_map *map, const char *key);
+
+
+/**
+ *
+ * @param map
+ * @param key
+ * @param data
+ * @return
+ */
+int cuckoo_retrieve(struct cuckoo_map *map, const char *key, void **data);
+
+
+/**
+ *
+ * @param map
+ * @param key
+ * @return
+ */
+int cuckoo_remove(struct cuckoo_map *map, const char *key, void (*free_cb)(void*));
+
+
+/**
+ *
+ * @param map
+ * @return
+ */
+int cuckoo_clear(struct cuckoo_map *map, void (*free_cb)(void*));
+
+
+/**
+ *
+ * @param map
+ * @return
+ */
+int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*));
