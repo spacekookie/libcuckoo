@@ -24,6 +24,7 @@ int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **over
 int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 {
     int ret;
+    int rec_ctr;
     cc_map_item *item, *collision;
 
     /* Check for present arguments */
@@ -31,10 +32,15 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
     if(key == NULL)     return CUCKOO_INVALID_OPTIONS;
     if(data == NULL)    return CUCKOO_INVALID_OPTIONS;
 
-    /** Create a new cc_map_item with all fields set */
+    /* Allocate space for a new map_item */
     item = (cc_map_item*) malloc(sizeof(cc_map_item));
+    if(item == NULL) {
+        ret = CUCKOO_MALLOC_FAIL;
+        return ret;
+    }
     memset(item, 0, sizeof(cc_map_item));
 
+    /** Create a new cc_map_item with all fields set */
     item->prev = (short) TABLE_INIT;
     item->table = TABLE_INIT;
     item->qu_idx = IGNORE;
@@ -42,11 +48,22 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
     strcpy(item->key, key);
     item->value = data;
 
+    /* Insert "recursively" everything is settled */
+    ret = CUCKOO_SUCCESS;
+    rec_ctr = 0;
     do {
         ret = insert_to_next(map, item, &collision);
         if(ret != 0) return ret;
+
+        rec_ctr++;
+        if(rec_ctr >= map->rec_lim) {
+            ret = CUCKOO_FAILED_INSERT;
+            break;
+        }
+
     } while(collision != NULL);
 
+    return ret;
 }
 
 

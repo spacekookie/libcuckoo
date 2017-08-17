@@ -9,7 +9,7 @@
 
 
 typedef struct cc_map_item {
-    const char      *key;           // Index key
+    char            *key;           // Index key
     void            *value;         // User data
     short           table;          // Table location
     short           prev;           // Previous table location
@@ -21,17 +21,20 @@ typedef struct cuckoo_map {
     size_t          size;           // Table max size (upper bound)
     size_t          *used;          // Occupancy of each table
     unsigned short  num_tables;     // Number of tables
-    cc_map_item ***tables;          // Actual data storage
+    unsigned short  rec_lim;        // Upper limit for recursive inserts
+    cc_map_item     ***tables;      // Actual data storage
 } cuckoo_map;
 
 
 /** Runtime flags given to initialiser **/
-#define CUCKOO_DEFAULT        (1 << 1)
-#define CUCKOO_QUEUED         (1 << 2)
-#define CUCKOO_ASYNC          (1 << 3)
-#define CUCKOO_TABLES_TWO     (1 << 4)
-#define CUCKOO_TABLES_THREE   (1 << 5)
-#define CUCKOO_TABLES_FOUR    (1 << 6)
+#define CUCKOO_DEFAULT          (1 << 1)
+#define CUCKOO_REC_UNLIMITED    (1 << 2)
+#define CUCKOO_REC_LIMITED      (1 << 3)
+#define CUCKOO_QUEUED           (1 << 4)
+#define CUCKOO_ASYNC            (1 << 5)
+#define CUCKOO_TABLES_TWO       (1 << 6)
+#define CUCKOO_TABLES_THREE     (1 << 7)
+#define CUCKOO_TABLES_FOUR      (1 << 8)
 
 /** Don't provide a callback function */
 #define CUCKOO_NO_CB            NULL
