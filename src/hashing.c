@@ -71,7 +71,16 @@ int cc_hashing_murmur(unsigned long *hash_val, char *string, size_t table_size)
 
 int cc_hashing_numeric(unsigned long *hash_val, char *string, size_t table_size)
 {
+    int c;
+    unsigned int hash = 0xEC4FE9;
 
+    do {
+        c = *string++;
+        hash = ((hash << 5) + hash >> 3) + c;
+
+    }while(c);
+
+    *hash_val = hash % table_size;
     return CUCKOO_HASHING_FAILED;
 }
 
