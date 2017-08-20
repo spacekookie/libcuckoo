@@ -42,12 +42,18 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
 
     /* Set initial table size */
     m->size = init_size;
+    m->rec_lim = 8;
 
     /* Handle runtime flags */
     if(check_flagmask(flags, CUCKOO_TABLES_THREE) == 0) {
         m->num_tables = 3;
     } else if(check_flagmask(flags, CUCKOO_TABLES_FOUR) == 0) {
-        m->num_tables = 4;
+
+        // FIXME: We need a forth hash function :P
+        fprintf(stderr, "Only 2 or 3 tables supported at this time!\n");
+        ret = CUCKOO_NOT_IMPLEMENTED;
+        goto cleanup;
+//        m->num_tables = 4;
     }  else {
         m->num_tables = 2;
     }
@@ -56,7 +62,7 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     // FIXME: This behaviour should be supported!
     if(check_flagmask(flags, CUCKOO_ASYNC | CUCKOO_QUEUED) == 0) {
         fprintf(stderr, "Runtime modes besides 'default' not supported!\n");
-        ret = CUCKOO_INVALID_OPTIONS;
+        ret = CUCKOO_NOT_IMPLEMENTED;
         goto cleanup;
     }
 
@@ -113,14 +119,20 @@ int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*))
     /* Iterate over all tables */
     for(i = 0; i < map->num_tables; i++) {
 
-        /* Run "free cb for all children - if it exists */
-        if(free_cb != NULL) {
-            for(j = 0; j < map->used[i]; j++) {
-                free_cb(map->tables[i][j]);
-            }
+        /* Free all items from all tables */
+        for(j = 0; j < map->size; j++) {
+            cc_map_item *item = map->tables[i][j];
+            if(item == NULL) continue;
+
+            /* Run free_cb if it exists */
+            if(free_cb != NULL)
+                free_cb(item->value);
+
+            free(item->key);
+            free(item);
         }
 
-        if(map->tables[i] != NULL) free(map->tables[i]);
+        free(map->tables[i]);
     }
 
     if(map->used != NULL) free(map->used);

@@ -27,24 +27,29 @@ typedef struct cuckoo_map {
 
 
 /** Runtime flags given to initialiser **/
-#define CUCKOO_DEFAULT          (1 << 1)
-#define CUCKOO_REC_UNLIMITED    (1 << 2)
-#define CUCKOO_REC_LIMITED      (1 << 3)
-#define CUCKOO_QUEUED           (1 << 4)
-#define CUCKOO_ASYNC            (1 << 5)
-#define CUCKOO_TABLES_TWO       (1 << 6)
-#define CUCKOO_TABLES_THREE     (1 << 7)
-#define CUCKOO_TABLES_FOUR      (1 << 8)
+#define CUCKOO_DEFAULT              (1 << 1)
+#define CUCKOO_REC_UNLIMITED        (1 << 2)
+#define CUCKOO_REC_LIMITED          (1 << 3)
+#define CUCKOO_QUEUED               (1 << 4)
+#define CUCKOO_ASYNC                (1 << 5)
+#define CUCKOO_TABLES_TWO           (1 << 6)
+#define CUCKOO_TABLES_THREE         (1 << 7)
+#define CUCKOO_TABLES_FOUR          (1 << 8)
 
 /** Don't provide a callback function */
-#define CUCKOO_NO_CB            NULL
+#define CUCKOO_NO_CB                NULL
 
-#define CUCKOO_SUCCESS              (0     )
-#define CUCKOO_ERROR                (1 << 0)
-#define CUCKOO_MALLOC_FAIL          (1 << 1)
-#define CUCKOO_INVALID_OPTIONS      (1 << 2)
-#define CUCKOO_FAILED_INSERT        (1 << 3)
-#define CUCKOO_HASHING_FAILED       (1 << 4)
+#define CUCKOO_SUCCESS              0
+#define CUCKOO_ERROR                1
+
+/* Runtime issues */
+#define CUCKOO_MALLOC_FAIL          10
+#define CUCKOO_FAILED_INSERT        11
+#define CUCKOO_HASHING_FAILED       12
+
+/* User created issues */
+#define CUCKOO_INVALID_OPTIONS      20
+#define CUCKOO_NOT_IMPLEMENTED      21
 
 
 /**

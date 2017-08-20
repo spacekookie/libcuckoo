@@ -24,8 +24,8 @@ int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **over
 int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 {
     int ret;
-    int rec_ctr;
-    cc_map_item *item, *collision;
+    cc_map_item *collision = NULL;
+    cc_map_item *item;
 
     /* Check for present arguments */
     if(map == NULL)     return CUCKOO_INVALID_OPTIONS;
@@ -50,8 +50,10 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 
     /* Insert "recursively" everything is settled */
     ret = CUCKOO_SUCCESS;
-    rec_ctr = 0;
+    int rec_ctr = 0;
     do {
+        if(collision != NULL) item = collision;
+
         ret = insert_to_next(map, item, &collision);
         if(ret != 0) return ret;
 
@@ -63,6 +65,7 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 
     } while(collision != NULL);
 
+    printf("STOP\n\n");
     return ret;
 }
 
@@ -70,16 +73,17 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **overflow)
 {
     short curr = item->table;
+    unsigned long hash;
     cc_map_item *coll;
-    long hash;
     int ret;
 
     /* Make sure overflow is NULL */
     *overflow = NULL;
+    char *key = item->key;
 
     /* Initial is TABLE_INIT + 1 = 0 */
-    short next = curr + 1;
-    if(next > map->num_tables) next = 0;
+    short next = curr + (short) 1;
+    if(next >= map->num_tables) next = 0;
 
     item->table = next;
     item->prev = curr;
@@ -110,7 +114,13 @@ int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **over
 
     /* Signal potential collisions */
     coll = map->tables[next][hash];
-    if(coll != NULL) *overflow = coll;
+    // printf("Inserting %s into %i:%i\n", item->key, next, hash);
+
+    if(coll != NULL) {
+        *overflow = coll;
+        // printf(" ==> Displacing %s\n", coll->key);
+    }
+
 
     /* Then write new element to table */
     map->tables[next][hash] = item;
