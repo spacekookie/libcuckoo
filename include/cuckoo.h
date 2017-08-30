@@ -5,7 +5,8 @@
  * @author Katharina "spacekookie" Fey
  */
 
-#include <unitypes.h>
+#include <stdint.h>
+#include <stddef.h>
 
 
 typedef struct cc_map_item {

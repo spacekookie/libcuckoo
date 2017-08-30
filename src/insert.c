@@ -65,7 +65,7 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 
     } while(collision != NULL);
 
-    printf("STOP\n\n");
+//    printf("STOP\n\n");
     return ret;
 }
 
