@@ -163,7 +163,7 @@ int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*))
             }
 
 
-            if(j < map->size) printf(", ");
+            if(j < map->size - 1) printf(", ");
             fflush(stdout);
         }
 
