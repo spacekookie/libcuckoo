@@ -164,6 +164,7 @@ int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*))
 
 
             if(j < map->size) printf(", ");
+            fflush(stdout);
         }
 
         printf("]\n");

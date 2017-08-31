@@ -61,25 +61,37 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
         if(rec_ctr >= map->rec_lim) {
 
             /* Increase table size when we fail to insert */
-            int i;
+            int i, j;
             size_t size = map->size * 2;
-            size_t memsize = sizeof(cc_map_item) * size;
 
             cc_map_item ***tmp = (cc_map_item***) calloc(sizeof(cc_map_item), map->num_tables);
             for(i = 0; i < map->num_tables; i++) {
-                tmp[i] = malloc(memsize);
+                tmp[i] = calloc(sizeof(cc_map_item), size);
                 if(tmp[i] == NULL) {
                     ret = CUCKOO_MALLOC_FAIL;
                     break;
                 }
-
-                memcpy(tmp[i], map->tables[i], map->size);
-                free(map->tables[i]);
-                map->tables[i] = tmp[i];
             }
 
-            free(tmp);
+            /* Store current state*/
+            cc_map_item ***buffer = map->tables;
+            size_t old_size = map->size;
+
+            /* Update our reference */
+            map->tables = tmp;
             map->size = size;
+
+            /* Then insert all old elements */
+            for(i = 0; i < map->num_tables; i++) {
+                for(j = 0; j < old_size; j++) {
+                    if(buffer[i][j] == NULL) continue;
+                    cuckoo_insert(map, buffer[i][j]->key, buffer[i][j]->value);
+                    free(buffer[i][j]->key);
+                    free(buffer[i][j]);
+                }
+            }
+
+            free(buffer);
             ret = CUCKOO_FAILED_INSERT;
             break;
         }
