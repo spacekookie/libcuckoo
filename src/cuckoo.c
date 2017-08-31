@@ -177,11 +177,23 @@ int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*))
 
 size_t cuckoo_size(struct cuckoo_map *map)
 {
+    if(map == NULL) return CUCKOO_INVALID_OPTIONS;
+
     size_t size = 0;
     int i;
     for(i = 0; i < map->num_tables; i++)
         size += map->used[i];
     return size;
+}
+
+
+double cuckoo_utilisation(struct cuckoo_map *map)
+{
+    if(map == NULL) return CUCKOO_INVALID_OPTIONS;
+
+    double util = (double) cuckoo_size(map);
+    util /= map->num_tables * map->size;
+    return util;
 }
 
 

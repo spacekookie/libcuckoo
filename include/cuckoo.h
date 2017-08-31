@@ -103,6 +103,16 @@ size_t cuckoo_size(struct cuckoo_map *map);
 
 
 /**
+ * Returns a value representing the utilisation of the table space
+ * inside the cuckoo map as a (double) floating value between 0 and 1
+ *
+ * @param map
+ * @return
+ */
+double cuckoo_utilisation(struct cuckoo_map *map);
+
+
+/**
  * A utility function which prints the current status of a cuckoo map
  * for debugging purposes.
  *
