@@ -5,6 +5,9 @@
  * @author Katharina "spacekookie" Fey
  */
 
+#ifndef __LIBCUCKOO_H_
+#define __LIBCUCKOO_H_
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -89,6 +92,15 @@ int cuckoo_contains(struct cuckoo_map *map, const char *key);
 
 
 /**
+ * Count all elements in all tables and returns a
+ *
+ * @param map
+ * @return
+ */
+size_t cuckoo_size(struct cuckoo_map *map);
+
+
+/**
  *
  * @param map
  * @param key
@@ -121,3 +133,5 @@ int cuckoo_clear(struct cuckoo_map *map, void (*free_cb)(void*));
  * @return
  */
 int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*));
+
+#endif // __LIBCUCKOO_H_
