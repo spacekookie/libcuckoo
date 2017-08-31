@@ -92,7 +92,9 @@ int cuckoo_contains(struct cuckoo_map *map, const char *key);
 
 
 /**
- * Count all elements in all tables and returns a
+ * Count all elements in all tables and returns the "size" of
+ * the cuckoo map. This can also be used to see if the maps are
+ * empty (if it returns 0)
  *
  * @param map
  * @return

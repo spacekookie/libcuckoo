@@ -16,9 +16,9 @@
 #define TABLE_TWO   1
 #define TABLE_THREE 2
 #define TABLE_FOUR  3
+#define TABLE_NULL  255
 
-
-int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **overflow);
+int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **overflow, int32_t *sd);
 
 
 int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
@@ -31,6 +31,9 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
     if(map == NULL)     return CUCKOO_INVALID_OPTIONS;
     if(key == NULL)     return CUCKOO_INVALID_OPTIONS;
     if(data == NULL)    return CUCKOO_INVALID_OPTIONS;
+
+    int32_t sd[map->num_tables];
+    memset(sd, 0, sizeof(int32_t) * map->num_tables);
 
     /* Allocate space for a new map_item */
     item = (cc_map_item*) malloc(sizeof(cc_map_item));
@@ -54,7 +57,7 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
     do {
         if(collision != NULL) item = collision;
 
-        ret = insert_to_next(map, item, &collision);
+        ret = insert_to_next(map, item, &collision, &sd);
         if(ret != 0) return ret;
 
         rec_ctr++;
@@ -81,8 +84,10 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
             map->tables = tmp;
             map->size = size;
 
-            /* Then insert all old elements */
+            /* Then insert all old elements and reset usage stats */
             for(i = 0; i < map->num_tables; i++) {
+                map->used[i] = 0;
+
                 for(j = 0; j < old_size; j++) {
                     if(buffer[i][j] == NULL) continue;
                     cuckoo_insert(map, buffer[i][j]->key, buffer[i][j]->value);
@@ -98,12 +103,18 @@ int cuckoo_insert(struct cuckoo_map *map, const char *key, void *data)
 
     } while(collision != NULL);
 
-//    printf("STOP\n\n");
+    /* Increase our size as needed */
+    if(ret == CUCKOO_SUCCESS) {
+        int i;
+        for(i = 0; i < map->num_tables; i++)
+            map->used[i] += sd[i];
+    }
+
     return ret;
 }
 
 
-int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **overflow)
+int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **overflow, int32_t *sd)
 {
     short curr = item->table;
     unsigned long hash;
@@ -118,8 +129,8 @@ int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **over
     short next = curr + (short) 1;
     if(next >= map->num_tables) next = 0;
 
-    item->table = next;
-    item->prev = curr;
+    item->table = (uint8_t) next;
+    item->prev = (uint8_t) curr;
 
     switch(next) {
         case TABLE_ONE:
@@ -147,13 +158,13 @@ int insert_to_next(struct cuckoo_map *map, cc_map_item *item, cc_map_item **over
 
     /* Signal potential collisions */
     coll = map->tables[next][hash];
-    // printf("Inserting %s into %i:%i\n", item->key, next, hash);
 
     if(coll != NULL) {
         *overflow = coll;
-        // printf(" ==> Displacing %s\n", coll->key);
     }
 
+    /* This let's us know what usage counter to increment */
+    if(coll == NULL) sd[next] += 1;
 
     /* Then write new element to table */
     map->tables[next][hash] = item;

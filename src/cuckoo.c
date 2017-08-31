@@ -175,6 +175,16 @@ int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*))
 }
 
 
+size_t cuckoo_size(struct cuckoo_map *map)
+{
+    size_t size = 0;
+    int i;
+    for(i = 0; i < map->num_tables; i++)
+        size += map->used[i];
+    return size;
+}
+
+
 /************************************************************/
 
 unsigned int check_flagmask(int32_t flags, int32_t mask)
