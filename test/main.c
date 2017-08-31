@@ -21,8 +21,8 @@ int main(void)
     cuckoo_print(map, CUCKOO_NO_CB); \
     printf("\n");
 
-    const char *abc = "abcdefghijklmnopqrstuvwxyz";
-    for(int i = 0; i < 26; i++) {
+    const char *abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(int i = 0; i < 26 * 2; i++) {
         char str[2] = "\0";
         str[0] = abc[i];
 
