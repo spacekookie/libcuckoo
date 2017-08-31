@@ -111,11 +111,11 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
 
 int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*))
 {
-    int i, j;
 
     if(map == NULL) return CUCKOO_INVALID_OPTIONS;
 
     /* Iterate over all tables */
+    int i, j;
     for(i = 0; i < map->num_tables; i++) {
 
         /* Free all items from all tables */
@@ -137,6 +137,38 @@ int cuckoo_free(struct cuckoo_map *map, void (*free_cb)(void*))
     if(map->used != NULL) free(map->used);
     if(map->tables != NULL) free(map->tables);
     free(map);
+
+    return CUCKOO_SUCCESS;
+}
+
+
+int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*))
+{
+    if(map == NULL) return CUCKOO_INVALID_OPTIONS;
+
+    int i, j;
+    for(i = 0; i < map->num_tables; i++) {
+
+        printf("[");
+        fflush(stdout);
+
+        for(j = 0; j < map->size; j++) {
+            cc_map_item *item = map->tables[i][j];
+
+            if(item == NULL) {
+                printf(" ");
+            } else {
+                if(print_cb == NULL)    printf("%s", item->key);
+                else                    print_cb(item->value);
+            }
+
+
+            if(j < map->size) printf(", ");
+        }
+
+        printf("]\n");
+    }
+
 
     return CUCKOO_SUCCESS;
 }

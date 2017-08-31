@@ -101,6 +101,22 @@ size_t cuckoo_size(struct cuckoo_map *map);
 
 
 /**
+ * A utility function which prints the current status of a cuckoo map
+ * for debugging purposes.
+ *
+ * You can provide a print_callback which will be called with the data
+ * entry that is being printed so you can custom print certain data types.
+ *
+ * By default the key will be printed in it's place.
+ *
+ * @param map       The map to print
+ * @param print_cb  Print callback or CUCKOO_NO_CB for default behaviour
+ * @return
+ */
+int cuckoo_print(struct cuckoo_map *map, void (*print_cb)(void*));
+
+
+/**
  *
  * @param map
  * @param key

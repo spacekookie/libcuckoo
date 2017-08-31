@@ -7,7 +7,7 @@ int main(void)
 {
     int ret;
     cuckoo_map *map;
-    ret = cuckoo_init(&map, 11, CUCKOO_TABLES_TWO | CUCKOO_DEFAULT);
+    ret = cuckoo_init(&map, 11, CUCKOO_TABLES_THREE | CUCKOO_DEFAULT);
     if(ret != 0) {
         printf("An error occured while initialising a map!\n");
         return ret;
@@ -16,17 +16,30 @@ int main(void)
     char *string = malloc(sizeof(char) * strlen("Something"));
     strcpy(string, "Something");
 
-    cuckoo_insert(map, "One", string);
-    cuckoo_insert(map, "Two", string);
-    cuckoo_insert(map, "Three", string);
-    cuckoo_insert(map, "Four", string);
-    cuckoo_insert(map, "Five", string);
-    cuckoo_insert(map, "a", string);
-    cuckoo_insert(map, "b", string);
-    cuckoo_insert(map, "c", string);
-    cuckoo_insert(map, "d", string);
-    cuckoo_insert(map, "e", string);
-    cuckoo_insert(map, "f", string);
+#define INSERT_PRINT(map, key, data) \
+    cuckoo_insert(map, key, data); \
+    cuckoo_print(map, CUCKOO_NO_CB); \
+    printf("\n");
+
+    const char *abc = "abcdefghijklmnopqrstuvwxyz";
+    for(int i = 0; i < 26; i++) {
+        char str[2] = "\0";
+        str[0] = abc[i];
+
+        printf("=== Inserting '%s' ===\n", str);
+        INSERT_PRINT(map, str, string)
+    }
+
+//    INSERT_PRINT(map, "Two", string);
+//    INSERT_PRINT(map, "Three", string);
+//    INSERT_PRINT(map, "Four", string);
+//    INSERT_PRINT(map, "Five", string);
+//    INSERT_PRINT(map, "a", string);
+//    INSERT_PRINT(map, "b", string);
+//    INSERT_PRINT(map, "c", string);
+//    INSERT_PRINT(map, "d", string);
+//    INSERT_PRINT(map, "e", string);
+//    INSERT_PRINT(map, "f", string);
 
 
     ret = cuckoo_free(map, CUCKOO_NO_CB);
