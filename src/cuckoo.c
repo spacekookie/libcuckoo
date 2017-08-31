@@ -84,7 +84,6 @@ int cuckoo_init(cuckoo_map **map, size_t init_size, uint32_t flags)
     memset(m->tables, 0, tables);
 
     /** Open up the tables by the desired amount */
-
     size_t init = sizeof(cc_map_item) * init_size;
     for(i = 0; i < m->num_tables; i++) {
         m->tables[i] = malloc(init);

@@ -15,17 +15,17 @@
 typedef struct cc_map_item {
     char            *key;           // Index key
     void            *value;         // User data
-    short           table;          // Table location
-    short           prev;           // Previous table location
-    int             qu_idx;         // Insert queue location
+    uint8_t         table;          // Table location
+    uint8_t         prev;           // Previous table location
+    uint32_t        qu_idx;         // Insert queue location
 } cc_map_item;
 
 
 typedef struct cuckoo_map {
     size_t          size;           // Table max size (upper bound)
     size_t          *used;          // Occupancy of each table
-    unsigned short  num_tables;     // Number of tables
-    unsigned short  rec_lim;        // Upper limit for recursive inserts
+    uint8_t         num_tables;     // Number of tables
+    uint32_t        rec_lim;        // Upper limit for recursive inserts
     cc_map_item     ***tables;      // Actual data storage
 } cuckoo_map;
 
