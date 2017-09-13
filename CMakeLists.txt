@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.13)
 project(libcuckoo)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -std=c11")
+include(CTest)
 
 set(LIBCUCKOO_SRC
     src/cuckoo.c
@@ -10,11 +9,30 @@ set(LIBCUCKOO_SRC
     src/hashing.c
 )
 
-# Create a library with properties and import paths
-add_library(libcuckoo STATIC ${LIBCUCKOO_SRC})
+add_library(libcuckoo-static STATIC ${LIBCUCKOO_SRC})
+target_include_directories(libcuckoo-static PUBLIC "include")
+set_target_properties(libcuckoo-static PROPERTIES OUTPUT_NAME "cuckoo")
+
+add_library(libcuckoo SHARED ${LIBCUCKOO_SRC})
 target_include_directories(libcuckoo PUBLIC "include")
-target_include_directories(libcuckoo PRIVATE "src")
 set_target_properties(libcuckoo PROPERTIES PREFIX "")
 
-add_executable(cuckoo_test test/main.c)
-target_link_libraries(cuckoo_test libcuckoo)
+if (BUILD_TESTING)
+enable_testing()
+add_subdirectory (test)
+endif ()
+
+INSTALL (
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
+    DESTINATION include )
+
+#install (TARGETS libcuckoo LIBRARY DESTINATION lib)
+#install (TARGETS libcuckoo-static LIBRARY DESTINATION lib)
+
+install (TARGETS libcuckoo
+         ARCHIVE DESTINATION lib
+         LIBRARY DESTINATION lib)
+
+install (TARGETS libcuckoo-static
+         ARCHIVE DESTINATION lib
+         LIBRARY DESTINATION lib)
