@@ -9,8 +9,8 @@
 #include <cuckoo.h>
 
 /* Stdlib requirements */
-#include <memory.h>
-#include <malloc.h>
+#include <stdio.h>
+#include <string.h>
 
 /* Internal hashing submodule */
 #include "hashing.h"
